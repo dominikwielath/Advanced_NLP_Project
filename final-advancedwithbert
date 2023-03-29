@@ -1,0 +1,485 @@
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "id": "db6e9a56",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import os\n",
+    "import pandas as pd"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "5980de14",
+   "metadata": {},
+   "source": [
+    "# Preprocessing"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "df6a3626",
+   "metadata": {},
+   "source": [
+    "### Load Data"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "id": "d8c33524",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/var/folders/gs/1_v5qmgn6rv2g4xtpvbhlpgm0000gn/T/ipykernel_77371/450207683.py:6: ParserWarning: Falling back to the 'python' engine because the 'c' engine does not support regex separators (separators > 1 char and different from '\\s+' are interpreted as regex); you can avoid this warning by specifying engine='python'.\n",
+      "  df = pd.read_csv(os.path.join(directory, filename), delimiter=\":::\", encoding='utf-8', header=None)\n",
+      "/var/folders/gs/1_v5qmgn6rv2g4xtpvbhlpgm0000gn/T/ipykernel_77371/450207683.py:12: ParserWarning: Falling back to the 'python' engine because the 'c' engine does not support regex separators (separators > 1 char and different from '\\s+' are interpreted as regex); you can avoid this warning by specifying engine='python'.\n",
+      "  df_test = pd.read_csv(os.path.join(directory, filename), delimiter=\":::\", encoding='utf-8', header=None)\n"
+     ]
+    },
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>title</th>\n",
+       "      <th>genre</th>\n",
+       "      <th>description</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>Edgar's Lunch (1998)</td>\n",
+       "      <td>thriller</td>\n",
+       "      <td>L.R. Brane loves his life - his car, his apar...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>La guerra de papá (1977)</td>\n",
+       "      <td>comedy</td>\n",
+       "      <td>Spain, March 1964: Quico is a very naughty ch...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>Off the Beaten Track (2010)</td>\n",
+       "      <td>documentary</td>\n",
+       "      <td>One year in the life of Albin and his family ...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>Meu Amigo Hindu (2015)</td>\n",
+       "      <td>drama</td>\n",
+       "      <td>His father has died, he hasn't spoken with hi...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>Er nu zhai (1955)</td>\n",
+       "      <td>drama</td>\n",
+       "      <td>Before he was known internationally as a mart...</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "                           title        genre  \\\n",
+       "0          Edgar's Lunch (1998)      thriller   \n",
+       "1      La guerra de papá (1977)        comedy   \n",
+       "2   Off the Beaten Track (2010)   documentary   \n",
+       "3        Meu Amigo Hindu (2015)         drama   \n",
+       "4             Er nu zhai (1955)         drama   \n",
+       "\n",
+       "                                         description  \n",
+       "0   L.R. Brane loves his life - his car, his apar...  \n",
+       "1   Spain, March 1964: Quico is a very naughty ch...  \n",
+       "2   One year in the life of Albin and his family ...  \n",
+       "3   His father has died, he hasn't spoken with hi...  \n",
+       "4   Before he was known internationally as a mart...  "
+      ]
+     },
+     "execution_count": 3,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "# Load the dataframe\n",
+    "directory = '/run/media/david-vp/davidvp-files/DSMMaster/advanced-nlp/final-proj/Genre Classification Dataset/'\n",
+    "directory='/Users/Miguel/Desktop/BSE/Term2/Advanced NLP/Advanced_NLP_Project/Genre Classification Dataset/'\n",
+    "filename =\"train_data.txt\"\n",
+    "\n",
+    "df = pd.read_csv(os.path.join(directory, filename), delimiter=\":::\", encoding='utf-8', header=None)\n",
+    "\n",
+    "df.drop(columns=df.columns[0], axis=1, inplace=True)\n",
+    "df.columns =['title', 'genre', 'description']\n",
+    "\n",
+    "filename = \"test_data_solution.txt\"\n",
+    "df_test = pd.read_csv(os.path.join(directory, filename), delimiter=\":::\", encoding='utf-8', header=None)\n",
+    "\n",
+    "df_test.drop(columns=df_test.columns[0], axis=1, inplace=True)\n",
+    "df_test.columns =['title', 'genre', 'description']\n",
+    "\n",
+    "df['genre']=df['genre'].apply(lambda x: x.strip())\n",
+    "df_test['genre']=df_test['genre'].apply(lambda x: x.strip())\n",
+    "\n",
+    "df_test.head()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "id": "f58f5443",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "array(['drama', 'thriller', 'comedy', 'horror', 'action', 'sci-fi',\n",
+       "       'western'], dtype=object)"
+      ]
+     },
+     "execution_count": 4,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "list_labels = [\"drama\", \"comedy\", \"horror\", \"thriller\", \"action\", \"western\", \"sci-fi\"]\n",
+    "\n",
+    "df = df[df[\"genre\"].isin(list_labels)]\n",
+    "df_test = df_test[df_test[\"genre\"].isin(list_labels)]\n",
+    "\n",
+    "df[\"genre\"].unique()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "314f2a64",
+   "metadata": {},
+   "source": [
+    "### Remove Stopwords"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "id": "9cbb4392",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from collections import Counter\n",
+    "\n",
+    "# Natural language Toolkit\n",
+    "from nltk.stem import SnowballStemmer                                   # Porter's II Stemmer\n",
+    "from nltk import word_tokenize                                          # Document tokenizer\n",
+    "from nltk.corpus import stopwords \n",
+    "from nltk.stem.wordnet import WordNetLemmatizer\n",
+    "\n",
+    "def remove_stopwords(text):\n",
+    "    words = text.split()\n",
+    "    clean_words = [word for word in words if word.lower() not in stop_words]\n",
+    "    return ' '.join(clean_words)\n",
+    "\n",
+    "# stop words\n",
+    "stop_words = set(stopwords.words('english')) \n",
+    "my_stopwords = ['lol', 'people', 'expand',\n",
+    "                'really', 'deal','u', 'much', 'get', 'good', 'act', 'put', 'man', 'a', 'think', 'one',\n",
+    "                'say', 'like', 'go', 'do', 'head', 'yet', 'wall', 'guess', 'keep', 'oh', 'north', 'oil',\n",
+    "                'prize', 'involved', 'might', 'medium''among', 'might', 'make', 'do', 'may', 'year', 'give',\n",
+    "                'also', 'law', 'etc', 'wait', 'prove', 'mean', 'thing', 'rest', 'middle','rnr','u','fuck','make',\n",
+    "                'would', 'know', 'lot', 'see', 'president', 'done', 'even', 'many', 'ever', 'want', 'made',\n",
+    "                'got', 'going', 'need', 'view', 'something', 'lasting', 'still', 'way', 'every', 'anyone', \n",
+    "                'first', 'look', 'medium', 'time', 'since', 'life', 'probably', 'anything', 'come', \n",
+    "                'long', 'could', 'anything', 'donald', 'back', 'sure', 'last', 'nothing', 'rate', 'well',\n",
+    "                'left', 'le', 'someone', 'example', 'seen', 'day', 'said', 'world', 'making', 'far', 'care',\n",
+    "                'shit','america','issue','new', 'actually','never','whole','exposed','imapct','side','single']\n",
+    "stop_words.update(my_stopwords)\n",
+    "\n",
+    "df['description'] = df['description'].apply(remove_stopwords)\n",
+    "\n",
+    "terms_by_genre = {}\n",
+    "\n",
+    "for genre in df['genre'].unique():\n",
+    "    genre_df = df[df['genre'] == genre]\n",
+    "    all_descriptions = ' '.join(genre_df['description'])\n",
+    "    all_words = all_descriptions.split()\n",
+    "    word_counts = Counter(all_words)\n",
+    "    sorted_words = sorted(word_counts.items(), key=lambda x: x[1], reverse=True)\n",
+    "    top_words = [word for word, count in sorted_words[:50]]\n",
+    "    terms_by_genre[genre] = top_words\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "0fda95e9",
+   "metadata": {},
+   "source": [
+    "### Lemmatize"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 15,
+   "id": "559ace0b",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import nltk\n",
+    "from nltk.stem import WordNetLemmatizer \n",
+    "\n",
+    "# Tokenize: Split the sentence into words\n",
+    "docs = df['description']\n",
+    "\n",
+    "lemmatizer = WordNetLemmatizer()\n",
+    "docs = [[lemmatizer.lemmatize(token) for token in doc] for doc in docs]\n",
+    "\n",
+    "# Lemmatize list of words and join\n",
+    "lemmatized_output = [''.join([lemmatizer.lemmatize(w) for w in doc]) for doc in docs]\n",
+    "df['description'] = lemmatized_output\n",
+    "df.head()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "817b0214",
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "markdown",
+   "id": "f2261344",
+   "metadata": {},
+   "source": [
+    "# David's Baseline"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 19,
+   "id": "225f39b3",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def predict_genre(description):\n",
+    "    words = description.split()\n",
+    "    genre_scores = {}\n",
+    "    for genre in terms_by_genre:\n",
+    "        top_words = set(terms_by_genre[genre])\n",
+    "        score = len(set(words) & top_words)\n",
+    "        genre_scores[genre] = score\n",
+    "    predicted_genre = max(genre_scores, key=genre_scores.get)\n",
+    "    return predicted_genre"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 7,
+   "id": "b051381e",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "F1:  0.4604663751146275\n",
+      "Recall:  0.4458411147823589\n"
+     ]
+    }
+   ],
+   "source": [
+    "import pandas as pd\n",
+    "from sklearn.metrics import f1_score, recall_score\n",
+    "\n",
+    "predicted_genres = df_test[\"description\"].apply(predict_genre)\n",
+    "\n",
+    "true_labels = df_test[\"genre\"]\n",
+    "f1 = f1_score(true_labels, predicted_genres, average=\"weighted\")\n",
+    "recall = recall_score(true_labels, predicted_genres, average=\"weighted\")\n",
+    "\n",
+    "print(\"F1: \",f1)\n",
+    "\n",
+    "print(\"Recall: \",recall)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "f2536653",
+   "metadata": {},
+   "source": [
+    "# GRU Network"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 103,
+   "id": "707c29bc",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import pandas as pd\n",
+    "import tensorflow as tf\n",
+    "from tensorflow.keras.layers import GRU, Dense, Embedding, Dropout\n",
+    "from tensorflow.keras.models import Sequential\n",
+    "from tensorflow.keras.preprocessing.text import Tokenizer\n",
+    "from tensorflow.keras.preprocessing.sequence import pad_sequences\n",
+    "from sklearn.metrics import f1_score, recall_score\n",
+    "\n",
+    "# input and target columns\n",
+    "X_train = df[\"description\"].values\n",
+    "y_train = pd.get_dummies(df[\"genre\"]).values\n",
+    "\n",
+    "X_test = df_test[\"description\"].values\n",
+    "y_test = pd.get_dummies(df_test[\"genre\"]).values\n",
+    "\n",
+    "# find the maximum length of the descriptions\n",
+    "maxlen = max(len(description) for description in X_train)\n",
+    "\n",
+    "maxlen = 1000"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 104,
+   "id": "aa3c86fd",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# tokenize the input text\n",
+    "tokenizer = Tokenizer(num_words=10000)\n",
+    "tokenizer.fit_on_texts(X_train)\n",
+    "X_train = tokenizer.texts_to_sequences(X_train)\n",
+    "X_train = pad_sequences(X_train, maxlen=maxlen)\n",
+    "X_test = tokenizer.texts_to_sequences(X_test)\n",
+    "X_test = pad_sequences(X_test, maxlen=maxlen)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "2230c1d2",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Epoch 1/10\n",
+      "697/697 [==============================] - 264s 376ms/step - loss: 1.1917 - accuracy: 0.5467 - val_loss: 0.9788 - val_accuracy: 0.6610\n",
+      "Epoch 2/10\n",
+      "176/697 [======>.......................] - ETA: 3:04 - loss: 0.8124 - accuracy: 0.7120"
+     ]
+    }
+   ],
+   "source": [
+    "# define the model architecture\n",
+    "model = Sequential()\n",
+    "model.add(Embedding(10000, 64, input_length=maxlen))\n",
+    "model.add(GRU(64, dropout=0.2))\n",
+    "model.add(Dense(7, activation=\"softmax\"))\n",
+    "\n",
+    "# compile the model\n",
+    "model.compile(loss=\"categorical_crossentropy\",\n",
+    "              optimizer=\"adam\",\n",
+    "              metrics=[\"accuracy\"])\n",
+    "\n",
+    "# train the model\n",
+    "model.fit(X_train, y_train, epochs=10, batch_size=32, validation_split=0.2)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "5f704335",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# evaluate the model on the test set\n",
+    "y_pred = model.predict(X_test)\n",
+    "y_pred = y_pred.argmax(axis=1)\n",
+    "y_true = y_test.argmax(axis=1)\n",
+    "f1 = f1_score(y_true, y_pred, average=\"weigthed\")\n",
+    "recall = recall_score(y_true, y_pred, average=\"weigthed\")\n",
+    "print(\"F1 score:\", f1)\n",
+    "print(\"Recall score:\", recall)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "36528881",
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "012d62b4",
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "a3120391",
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "e99e2f4c",
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3 (ipykernel)",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.10.5"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}
