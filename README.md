@@ -8,3 +8,6 @@ Please note the following important contents of the repo:
 * <tt>`test_predictions.csv`</tt> is the test dataset with the addition of all of the predictions of our different models except BERT.
 * <tt>`test_predictions_with_bert.csv`</tt> is the test dataset with all of the predictions of our different models.
 
+Nikita Baklazhenko, Miguel Conner, David Vallmanya, Dominik Wielath
+
+
