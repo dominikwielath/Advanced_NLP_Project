@@ -9,6 +9,13 @@ import numpy as np
 import pandas as pd
 import nltk
 nltk.download('stopwords')
+import torch
+from torch import nn
+from torch.optim import Adam
+from torch.cuda.amp import autocast, GradScaler
+from transformers import BertModel, BertTokenizer
+from torch.utils.data import DataLoader
+from tqdm import tqdm
 
 from sklearn.feature_extraction.text import TfidfVectorizer
 
@@ -97,8 +104,7 @@ def create_tfidf_dict(df,data_column, name_column, no_words):
         important_dict[col] = list(most_important)
 
     return important_dict
-  
-  
+
 def dictionary_predictions(df, data_column, important_dict, genre_priors):
     """Predicts based on an dictionary which topic each text belongs to. 
 
@@ -151,3 +157,86 @@ def dictionary_predictions(df, data_column, important_dict, genre_priors):
     print("Share of data which was labeled based on dictionary: " + str(round(i/len(predictions), 3)))
     print("Share of data randomly labled using prior distribution: " + str(round(1 - i/len(predictions), 3)))
     return list(predictions)
+
+
+
+def tokenize_and_preprocess(df, tokenizer, labels, max_length=512):
+    """
+    Tokenize and preprocess the text and labels from a DataFrame.
+    
+    Args:
+        df (pd.DataFrame): DataFrame containing the text and labels.
+        tokenizer (BertTokenizer): Tokenizer to use for tokenizing the text.
+        labels (dict): Mapping of label names to label indices.
+        max_length (int, optional): Maximum sequence length. Defaults to 512.
+
+    Returns:
+        tuple: Tuple containing tokenized texts and label indices.
+    """
+    texts = df['description'].tolist()
+    encoded_texts = tokenizer(texts, padding='max_length', max_length=max_length, truncation=True, return_tensors="pt")
+    labels1 = [labels[label] for label in df['genre']]
+    return encoded_texts, labels1
+
+
+class TextDataset(torch.utils.data.Dataset):
+    def __init__(self, texts, labels):
+        self.texts = texts
+        self.labels = labels
+
+    def __len__(self):
+        return len(self.labels)
+
+    def __getitem__(self, idx):
+        return self.texts['input_ids'][idx], self.texts['attention_mask'][idx], self.labels[idx]
+
+
+class BertClassifier(nn.Module):
+    def __init__(self, num_classes, dropout=0.5):
+        super(BertClassifier, self).__init__()
+
+        self.bert = BertModel.from_pretrained('bert-base-cased')
+        self.dropout = nn.Dropout(dropout)
+        self.linear = nn.Linear(768, num_classes)
+        self.relu = nn.ReLU()
+
+    def forward(self, input_id, mask):
+        _, pooled_output = self.bert(input_ids=input_id, attention_mask=mask, return_dict=False)
+        dropout_output = self.dropout(pooled_output)
+        linear_output = self.linear(dropout_output)
+        final_layer = self.relu(linear_output)
+
+        return final_layer
+
+
+def train(model, train_data, val_data, labels, learning_rate, epochs, batch_size=1):
+    tokenizer = BertTokenizer.from_pretrained('bert-base-cased')
+    encoded_train_texts, train_labels = tokenize_and_preprocess(train_data, tokenizer, labels)
+    encoded_val_texts, val_labels = tokenize_and_preprocess(val_data, tokenizer, labels)
+
+    train_dataset = TextDataset(encoded_train_texts, train_labels)
+    val_dataset = TextDataset(encoded_val_texts, val_labels)
+
+    train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+    val_dataloader = DataLoader(val_dataset, batch_size=batch_size)
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model.to(device)
+
+    criterion = nn.CrossEntropyLoss()
+    optimizer = Adam(model.parameters(), lr=learning_rate)
+    scaler = GradScaler()
+
+    for epoch_num in range(epochs):
+        total_acc_train = 0
+        total_loss_train = 0
+
+        for train_input, train_mask, train_label in tqdm(train_dataloader):
+            train_input, train_mask, train_label = train_input.to(device), train_mask.to(device), train_label.to(device)
+            
+            with autocast():  # Use mixed precision training
+                output = model(train_input, train_mask)
+                batch_loss = criterion(output, train_label.long())
+            
+            total_loss_train += batch_loss.item()
+            acc = (output
