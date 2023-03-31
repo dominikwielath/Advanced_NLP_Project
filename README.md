@@ -3,7 +3,8 @@ In this project, we try to predict movie genres based on their description using
 
 Please note the following important contents of the repo:
 * <tt>`final-advanced.ipynb`</tt> is the notebook that walks through the analysis.
-* <tt>`helper_functions.py`</tt> includes some of the custom functions we wrote that were left out of the the notebook
-* <tt>`Genre Classification Dataset`</tt> contains the dataset
-* <tt>`test_predictions.csv`</tt> is the test dataset with the addition of all of the predictions of our different models.
+* <tt>`helper_functions.py`</tt> includes some of the custom functions we wrote that were left out of the the notebook.
+* <tt>`Genre Classification Dataset`</tt> contains the dataset.
+* <tt>`test_predictions.csv`</tt> is the test dataset with the addition of all of the predictions of our different models except BERT.
+* <tt>`test_predictions_with_bert.csv`</tt> is the test dataset with all of the predictions of our different models.
 
