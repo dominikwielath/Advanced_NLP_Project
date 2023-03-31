@@ -159,7 +159,6 @@ def dictionary_predictions(df, data_column, important_dict, genre_priors):
     return list(predictions)
 
 
-
 def tokenize_and_preprocess(df, tokenizer, labels, max_length=512):
     """
     Tokenize and preprocess the text and labels from a DataFrame.
@@ -220,23 +219,29 @@ class BertClassifier(nn.Module):
         return final_layer
 
 
-def train(model, train_data, val_data, labels, learning_rate, epochs, batch_size=1):
-    tokenizer = BertTokenizer.from_pretrained('bert-base-cased')
-    encoded_train_texts, train_labels = tokenize_and_preprocess(train_data, tokenizer, labels)
-    encoded_val_texts, val_labels = tokenize_and_preprocess(val_data, tokenizer, labels)
 
-    train_dataset = TextDataset(encoded_train_texts, train_labels)
-    val_dataset = TextDataset(encoded_val_texts, val_labels)
 
-    train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-    val_dataloader = DataLoader(val_dataset, batch_size=batch_size)
+def train(model, train_data, val_data, learning_rate, epochs):
+    encoded_train_texts, train_labels = tokenize_and_preprocess(train_data)
+    encoded_val_texts, val_labels = tokenize_and_preprocess(val_data)
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model.to(device)
+    train_dataset = Dataset(encoded_train_texts, train_labels)
+    val_dataset = Dataset(encoded_val_texts, val_labels)
+
+    BATCH_SIZE = 1  # Increase the batch size if your GPU can handle it
+    train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
+    val_dataloader = torch.utils.data.DataLoader(val_dataset, batch_size=BATCH_SIZE)
+
+    use_cuda = torch.cuda.is_available()
+    device = torch.device("cuda" if use_cuda else "cpu")
 
     criterion = nn.CrossEntropyLoss()
     optimizer = Adam(model.parameters(), lr=learning_rate)
     scaler = GradScaler()
+
+    if use_cuda:
+        model = model.cuda()
+        criterion = criterion.cuda()
 
     for epoch_num in range(epochs):
         total_acc_train = 0
@@ -250,11 +255,31 @@ def train(model, train_data, val_data, labels, learning_rate, epochs, batch_size
                 batch_loss = criterion(output, train_label.long())
             
             total_loss_train += batch_loss.item()
-            acc = (output)
-        
+            acc = (output.argmax(dim=1) == train_label).sum().item()
+            total_acc_train += acc
+
+            model.zero_grad()
+            with autocast():
+                scaler.scale(batch_loss).backward()
+            scaler.step(optimizer)
+            scaler.update()
+        total_acc_val = 0
+        total_loss_val = 0
+
+        with torch.no_grad():
+            for val_input, val_mask, val_label in val_dataloader:
+                val_input, val_mask, val_label = val_input.to(device), val_mask.to(device), val_label.to(device)
+                output = model(val_input, val_mask)
+
+                batch_loss = criterion(output, val_label.long())
+                total_loss_val += batch_loss.item()
+
+                acc = (output.argmax(dim=1) == val_label).sum().item()
+                total_acc_val += acc
+
         print(
             f'Epochs: {epoch_num + 1} | Train Loss: {total_loss_train / len(train_data): .3f} \
             | Train Accuracy: {total_acc_train / len(train_data): .3f} \
             | Val Loss: {total_loss_val / len(val_data): .3f} \
             | Val Accuracy: {total_acc_val / len(val_data): .3f}')
-    return model
+        return model
