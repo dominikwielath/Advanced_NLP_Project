@@ -189,6 +189,17 @@ class TextDataset(torch.utils.data.Dataset):
 
     def __getitem__(self, idx):
         return self.texts['input_ids'][idx], self.texts['attention_mask'][idx], self.labels[idx]
+    
+class Dataset(torch.utils.data.Dataset):
+    def __init__(self, texts, labels):
+        self.texts = texts
+        self.labels = labels
+
+    def __len__(self):
+        return len(self.labels)
+
+    def __getitem__(self, idx):
+        return self.texts['input_ids'][idx], self.texts['attention_mask'][idx], self.labels[idx]
 
 
 class BertClassifier(nn.Module):
@@ -239,4 +250,11 @@ def train(model, train_data, val_data, labels, learning_rate, epochs, batch_size
                 batch_loss = criterion(output, train_label.long())
             
             total_loss_train += batch_loss.item()
-            acc = (output
+            acc = (output)
+        
+        print(
+            f'Epochs: {epoch_num + 1} | Train Loss: {total_loss_train / len(train_data): .3f} \
+            | Train Accuracy: {total_acc_train / len(train_data): .3f} \
+            | Val Loss: {total_loss_val / len(val_data): .3f} \
+            | Val Accuracy: {total_acc_val / len(val_data): .3f}')
+    return model
